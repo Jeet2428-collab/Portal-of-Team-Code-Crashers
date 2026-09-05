@@ -1,0 +1,39 @@
+services:
+  # 1. Django Backend API (Web Service)
+  - type: web
+    name: code-crashers-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: singapore
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ccportal.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: USE_SQLITE
+        value: "True"
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: SECRET_KEY
+        generateValue: true
+
+  # 2. React / Vite Frontend (Static Site)
+  - type: static
+    name: code-crashers-frontend
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    envVars:
+      - key: VITE_DJANGO_BASE_URL
+        fromService:
+          type: web
+          name: code-crashers-backend
+          property: host

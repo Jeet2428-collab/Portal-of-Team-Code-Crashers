@@ -1,0 +1,39 @@
+# Environments
+backend/ccvenv/
+backend/.venv/
+ccvenv/
+.venv/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.log
+
+# Node & Frontend
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Deploy zips
+*.zip
+backend_deploy.zip
+.firebase/
+
+# Secrets & Local Config
+.env
+backend/.env
+frontend/.env.local
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
