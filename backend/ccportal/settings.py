@@ -114,6 +114,14 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:5173',
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+AUTHENTICATION_BACKENDS = [
+    'teamcc.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
