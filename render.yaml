@@ -19,6 +19,8 @@ services:
         value: "*"
       - key: SECRET_KEY
         generateValue: true
+      - key: FAST2SMS_API_KEY
+        sync: false
 
   # 2. React / Vite Frontend (Static Site)
   - type: static

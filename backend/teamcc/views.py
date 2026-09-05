@@ -17,14 +17,6 @@ import urllib.parse
 from django.conf import settings
 from django.core.mail import send_mail
 
-try:
-    import firebase_admin
-    from firebase_admin import auth as firebase_auth
-    if not firebase_admin._apps:
-        firebase_admin.initialize_app()
-except Exception:
-    firebase_admin = None
-    firebase_auth = None
 
 from .models import (
     Department, 
@@ -561,86 +553,6 @@ def verify_mobile_login_otp(request):
     }, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def firebase_phone_login(request):
-    """
-    Validates verified Firebase ID token (or dev phone in DEBUG mode),
-    finds registered member by mobile number, and returns SimpleJWT tokens.
-    """
-    id_token = request.data.get('idToken') or request.data.get('id_token')
-    raw_phone = request.data.get('phone', '')
-
-    if not id_token and not raw_phone:
-        return Response({'detail': 'Firebase ID token or registered mobile number is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    phone_number = normalize_phone_number(raw_phone)
-    verified_phone = None
-
-    # 1. Verify token with Firebase Admin SDK if token is provided
-    if id_token and firebase_auth:
-        try:
-            decoded_token = firebase_auth.verify_id_token(id_token)
-            token_phone = decoded_token.get('phone_number', '')
-            verified_phone = normalize_phone_number(token_phone)
-        except Exception as err:
-            if getattr(settings, 'DEBUG', True) and phone_number:
-                print(f"[Firebase Dev Warning] Token decode bypass active ({err})")
-                verified_phone = phone_number
-            else:
-                return Response({'detail': f'Firebase token validation failed: {str(err)}'}, status=status.HTTP_401_UNAUTHORIZED)
-    elif phone_number:
-        verified_phone = phone_number
-
-    if not verified_phone:
-        return Response({'detail': 'Could not extract verified phone number from authentication.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # 2. Look up member in UserProfile
-    profile = UserProfile.objects.filter(contact=verified_phone).select_related('user').first()
-    if not profile or not profile.user:
-        profile = UserProfile.objects.filter(contact__endswith=verified_phone).select_related('user').first()
-
-    if not profile or not profile.user:
-        return Response({
-            'detail': f'No member account found with verified mobile number +91 {verified_phone}. Please check your number or contact an admin.'
-        }, status=status.HTTP_404_NOT_FOUND)
-
-    user = profile.user
-    if not user.is_active:
-        return Response({'detail': 'This member account has been deactivated. Please contact an admin.'}, status=status.HTTP_403_FORBIDDEN)
-
-    # 3. Generate SimpleJWT Tokens
-    refresh = RefreshToken.for_user(user)
-
-    card = getattr(user, 'membership_card', None)
-    dept = card.department.dept_name if card and card.department else (profile.year if profile else 'dev')
-
-    user_data = {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'name': profile.name if profile and profile.name else (user.get_full_name() or user.username),
-        'role': card.role if card else ('admin' if user.is_staff or user.is_superuser else 'member'),
-        'membershipId': card.member_id if card else (f"CC-ADMIN-{user.id}" if user.is_staff else f"CC26-DEV-{user.id}"),
-        'department': dept,
-        'year': profile.year if profile else '1st Year',
-        'sem': profile.semester if profile else '1st Semester',
-        'classRoll': profile.class_roll if profile else '',
-        'univRoll': profile.university_roll if profile else '',
-        'contact': profile.contact if profile else verified_phone,
-        'avatar': profile.avatar if profile and profile.avatar else f"https://api.dicebear.com/7.x/bottts/svg?seed={user.username}",
-        'joinedDate': str(card.joined_date) if card else '2024-08-01',
-        'expiryDate': str(card.expiry_date) if card else '2027-01-01',
-        'is_staff': user.is_staff,
-        'is_superuser': user.is_superuser,
-    }
-
-    return Response({
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
-        'user': user_data,
-        'detail': 'Firebase phone verification successful! Welcome back.'
-    }, status=status.HTTP_200_OK)
 
 
 # ----------------- MEMBERSHIP & ROSTER ENDPOINTS ----------------- #

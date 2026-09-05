@@ -172,3 +172,8 @@ EMAIL_HOST_USER = 'subha.ibm.24@gmail.com'
 EMAIL_HOST_PASSWORD = 'nfjb mzcm mdwh clqf'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_TIMEOUT = 10
+
+# ==============================================================================
+# FAST2SMS OTP SMS GATEWAY CONFIGURATION
+# ==============================================================================
+FAST2SMS_API_KEY = os.environ.get('FAST2SMS_API_KEY', '')

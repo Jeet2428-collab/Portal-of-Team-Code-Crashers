@@ -20,11 +20,10 @@ import {
   Edit3
 } from 'lucide-react';
 import { authAPI } from '../services/api';
-import { auth, RecaptchaVerifier, signInWithPhoneNumber } from '../services/firebase';
 import confetti from 'canvas-confetti';
 
 const Login = () => {
-  const { login, loginWithPhoneOTP, loginWithFirebaseToken, loading } = useAuth();
+  const { login, loginWithPhoneOTP, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,7 +47,6 @@ const Login = () => {
   const [phoneError, setPhoneError] = useState(null);
   const [phoneSuccessMsg, setPhoneSuccessMsg] = useState(null);
   const [phoneResendTimer, setPhoneResendTimer] = useState(0);
-  const [confirmationResult, setConfirmationResult] = useState(null);
 
   // Mobile OTP Resend Timer Countdown
   useEffect(() => {
@@ -260,46 +258,6 @@ const Login = () => {
     }
 
     setPhoneLoading(true);
-
-    // 1. Try Google Firebase Phone Auth if Firebase is initialized
-    if (auth) {
-      try {
-        if (window.recaptchaVerifier) {
-          try {
-            window.recaptchaVerifier.clear();
-          } catch (cErr) {
-            // ignore
-          }
-          window.recaptchaVerifier = null;
-        }
-
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-          callback: () => {},
-          'expired-callback': () => {
-            if (window.recaptchaVerifier) {
-              try { window.recaptchaVerifier.clear(); } catch (e) {}
-              window.recaptchaVerifier = null;
-            }
-          }
-        });
-
-        const appVerifier = window.recaptchaVerifier;
-        const formattedPhone = `+91${normalized}`;
-        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-        setConfirmationResult(confirmation);
-        setPhoneLoading(false);
-        setPhoneStep(2);
-        setPhoneResendTimer(60);
-        setPhoneSuccessMsg(`SMS verification code dispatched by Google to +91 ******${normalized.slice(-4)}`);
-        return;
-      } catch (fbError) {
-        console.error('[Firebase Phone Auth Error]', fbError.code, fbError.message);
-        setPhoneError(`Google SMS error (${fbError.code || 'error'}). Please check Firebase settings or use test code.`);
-      }
-    }
-
-    // 2. Fallback to backend OTP endpoint (supports local dev mode & email dispatch)
     try {
       const res = await authAPI.requestMobileLoginOTP(normalized);
       setPhoneLoading(false);
@@ -331,37 +289,6 @@ const Login = () => {
 
     setPhoneLoading(true);
 
-    // 1. If Firebase confirmation result is available, verify via Firebase
-    if (confirmationResult) {
-      try {
-        const userCredential = await confirmationResult.confirm(cleanOtp);
-        const idToken = await userCredential.user.getIdToken();
-        const res = await loginWithFirebaseToken(idToken, normalized, rememberMe);
-        setPhoneLoading(false);
-
-        if (res.success) {
-          confetti({
-            particleCount: 70,
-            spread: 80,
-            origin: { y: 0.6 }
-          });
-          const isUserAdmin = res.user?.is_staff || res.user?.is_superuser || res.user?.role === 'admin' || res.user?.role?.toLowerCase().includes('admin');
-          if (isUserAdmin) {
-            navigate('/admin');
-          } else {
-            navigate(from);
-          }
-          return;
-        } else {
-          setPhoneError(res.error || 'Firebase authentication failed.');
-          return;
-        }
-      } catch (fbConfirmErr) {
-        console.warn('[Firebase confirmation fallback to direct OTP]:', fbConfirmErr);
-      }
-    }
-
-    // 2. Direct backend verification fallback
     const res = await loginWithPhoneOTP(normalized, cleanOtp, rememberMe);
     setPhoneLoading(false);
 
@@ -384,9 +311,6 @@ const Login = () => {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      {/* Invisible reCAPTCHA container for Google Firebase Phone Auth */}
-      <div id="recaptcha-container"></div>
-
       <div className="glass-panel-glow p-8 rounded-3xl space-y-6 border border-slate-800 shadow-2xl relative">
         
         {/* Top Logo & Header */}

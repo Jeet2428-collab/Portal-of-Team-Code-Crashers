@@ -12,7 +12,6 @@ urlpatterns = [
     path('auth/forgot-password/verify-otp/', views.verify_otp_and_reset_password, name='verify_otp_and_reset_password'),
     path('auth/phone-login/request-otp/', views.request_mobile_login_otp, name='request_mobile_login_otp'),
     path('auth/phone-login/verify-otp/', views.verify_mobile_login_otp, name='verify_mobile_login_otp'),
-    path('auth/firebase-login/', views.firebase_phone_login, name='firebase_phone_login'),
 
     # Members & Departments
     path('members/', views.get_memberships, name='get_memberships'),
