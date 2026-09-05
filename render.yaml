@@ -36,7 +36,4 @@ services:
         destination: "/index.html"
     envVars:
       - key: VITE_DJANGO_BASE_URL
-        fromService:
-          type: web
-          name: code-crashers-backend
-          property: host
+        value: "https://code-crashers-backend.onrender.com"

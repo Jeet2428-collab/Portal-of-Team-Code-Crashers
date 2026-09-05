@@ -152,6 +152,16 @@ SIMPLE_JWT = {
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
+    r"^http://localhost:[0-9]+$",
+    r"^http://127\.0\.0\.1:[0-9]+$",
+]
+CORS_ALLOWED_ORIGINS = [
+    "https://code-crashers-frontend.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

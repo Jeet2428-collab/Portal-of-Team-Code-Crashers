@@ -7,7 +7,11 @@ export const getBaseUrl = () => {
     const trimmed = envUrl.trim().replace(/\/+$/, '');
     return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
   }
-  // Use relative path so all requests route through Vite proxy seamlessly across all devices
+  // When running on Render in production, automatically connect to the backend service
+  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+    return 'https://code-crashers-backend.onrender.com';
+  }
+  // Use relative path so all requests route through Vite proxy seamlessly across all devices in local dev
   return '';
 };
 
