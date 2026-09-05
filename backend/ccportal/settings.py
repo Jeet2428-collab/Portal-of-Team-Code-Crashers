@@ -176,4 +176,7 @@ EMAIL_TIMEOUT = 10
 # ==============================================================================
 # FAST2SMS OTP SMS GATEWAY CONFIGURATION
 # ==============================================================================
-FAST2SMS_API_KEY = os.environ.get('FAST2SMS_API_KEY', '')
+FAST2SMS_API_KEY = os.environ.get(
+    'FAST2SMS_API_KEY',
+    's8WL7Yz4nlrwj5oiSXxqakZyuJT9Uf3EG0vhPdcMmp62AFO1DKTMZHybD1ed89W4kYaAxBGsJ0zEroic'
+)

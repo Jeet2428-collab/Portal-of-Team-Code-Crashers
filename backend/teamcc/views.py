@@ -390,8 +390,15 @@ def send_sms_otp(phone_number, otp_code):
                 "authorization": fast2sms_key,
                 "Content-Type": "application/x-www-form-urlencoded",
             })
-            with urllib.request.urlopen(req, timeout=6) as resp:
-                print(f"[Fast2SMS SUCCESS] SMS dispatched with HTTP status {resp.status}")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp_data = resp.read().decode('utf-8')
+                print(f"[Fast2SMS SUCCESS] SMS dispatched to +91 {phone_number}! Gateway response: {resp_data}")
+        except urllib.error.HTTPError as http_err:
+            try:
+                error_body = http_err.read().decode('utf-8')
+                print(f"[Fast2SMS NOTICE] Gateway error ({http_err.code}): {error_body}. Local terminal fallback active.")
+            except Exception:
+                print(f"[Fast2SMS NOTICE] Gateway transfer error ({http_err}). Local terminal fallback active.")
         except Exception as err:
             print(f"[Fast2SMS NOTICE] Gateway transfer error ({err}). Local terminal fallback active.")
 
