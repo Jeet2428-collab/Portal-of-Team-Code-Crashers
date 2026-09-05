@@ -101,9 +101,6 @@ else:
     }
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.web.app',
-    'https://*.firebaseapp.com',
-    'https://*.run.app',
     'https://*.onrender.com',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
