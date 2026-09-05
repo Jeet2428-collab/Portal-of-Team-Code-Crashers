@@ -19,7 +19,25 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.http import JsonResponse
+
+def api_root(request):
+    return JsonResponse({
+        'status': 'online',
+        'service': 'Code Crashers Backend API',
+        'message': 'Welcome to the Code Crashers Portal API.',
+        'version': '1.0.0',
+        'endpoints': {
+            'admin': '/admin/',
+            'projects': '/api/projects/',
+            'members': '/api/members/',
+            'departments': '/api/dept/',
+            'phone_login': '/api/auth/phone-login/request-otp/',
+        }
+    })
+
 urlpatterns = [
+    path('', api_root, name='api_root'),
     path('admin/', admin.site.urls),
     path('api/', include('teamcc.urls')),
 ]
